@@ -1,7 +1,9 @@
 import os
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv 
-from dropbox_utils import upload_to_dropbox, download_from_dropbox
+from dropbox_utils import upload_to_dropbox
+from query import query as query_with_rag
+from langchain_community.chat_models import ChatOllama
 from PyPDF2 import PdfReader
 import docx
 
@@ -56,14 +58,25 @@ def route_embed():
 
 @app.route('/query', methods=['POST'])
 def route_query():
-    """Route pour interroger les fichiers intégrés."""
+    """Route pour interroger les fichiers intégrés avec ou sans RAG."""
     data = request.get_json()
-    prompt = data.get('query')
+    question = data.get('query')
+    temperature = data.get('temperature', 0.7)
 
-    if prompt:
-        response = f"Mock response for query: {prompt}"
-        return jsonify({"message": response}), 200
-    return jsonify({"error": "No query provided"}), 400
+    if not question:
+        return jsonify({"error": "No query provided"}), 400
+
+    # Sans RAG
+    llm = ChatOllama(model=os.getenv('LLM_MODEL', 'mistral'), temperature=temperature)
+    response_without_rag = llm.invoke(question)
+
+    # Avec RAG
+    response_with_rag = query_with_rag(question, temperature=temperature)
+
+    return jsonify({
+        "response_without_rag": response_without_rag,
+        "response_with_rag": response_with_rag
+    }), 200
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080, debug=True)

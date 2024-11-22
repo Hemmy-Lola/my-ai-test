@@ -28,9 +28,9 @@ def get_prompt():
 
     return QUERY_PROMPT, prompt
 
-def query(input):
+def query(input, temperature=0.7):
     if input:
-        llm = ChatOllama(model=LLM_MODEL)
+        llm = ChatOllama(model=LLM_MODEL, temperature=temperature)  # Température ajoutée
         db = get_vector_db()
         QUERY_PROMPT, prompt = get_prompt()
 
