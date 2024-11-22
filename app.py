@@ -44,13 +44,10 @@ def route_embed():
     file.save(local_path)
 
     dropbox_path = f"/{file.filename}"
-    # Appeler la fonction d'upload à Dropbox
     upload_to_dropbox(local_path, dropbox_path)
 
-    # Extraire le texte du fichier
     text = extract_text_from_file(local_path)
 
-    # Supprimer le fichier local après traitement
     os.remove(local_path)
 
     if text:
